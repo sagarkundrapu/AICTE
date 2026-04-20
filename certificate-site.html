@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/f/f1/Vitejs-logo.svg" type="image/png">
+<title>certificate-crd</title>
+
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F3F4F6; color: #111; }
+
+  /* ── Fixed headers ── */
+  /* .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: #fff; border-bottom: 1px solid #E5E7EB;
+    padding: 10px 28px; display: flex; align-items: center; gap: 12px;
+    height: 56px;
+  }
+  .topbar-logo { height: 36px; width: auto; object-fit: contain; display: block; } */
+/* ----------- modified  */
+  .topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid #E5E7EB;
+  height: 64px;
+
+  display: flex;
+  align-items: center;      /* vertical center */
+  justify-content: flex-start; /* keep left aligned */
+
+  padding-left: 190px;       /* consistent left spacing */
+}
+
+.topbar-logo {
+  height: 37px;             /* slightly bigger like reference */
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+/* ---------modified */
+  .logo-sub { font-size: 10px; color: #6B7280; margin-top: 2px; }
+
+  .badge-header {
+    position: relative; top: 60px; left: 0; right: 0; z-index: 99;
+    background: #ffffff38;
+    padding: 16px 190px; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    height: 88px;
+  }
+
+
+
+  .badge-header-left { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; background: #f0f0f0; border: 1px solid #cacbce; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .issued-to { font-size: 14px; color: #4B5563; }
+  .issued-to a { color: #1E40AF; font-weight: 600; text-decoration: none; }
+  .issued-date { font-size: 13px; color: #9CA3AF; margin-top: 2px; }
+  /* .verify-btn { background: #22C55E; color: #fff; border: none ; border-radius: 6px; padding: 9px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .verify-btn:hover { background: #16A34A; } */
+/* --------------modified */
+  .verify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 15px;
+  height: 36px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+
+  background: linear-gradient(to right, #22c55e, #16a34a);
+  border: none;
+  border-radius: 10px;
+
+  cursor: pointer;
+  white-space: nowrap;
+
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+  transition: all 0.2s ease;
+}
+
+.verify-btn:hover {
+  background: linear-gradient(to right, #16a34a, #15803d);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+}
+
+.verify-btn svg {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.verify-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.verify-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.4);
+}
+@media(max-width: 1024px){.topbar { padding-left: 30px;} .badge-header{ padding: 20px 30px;}}
+/* ----------------modified */
+
+  /* ── Page offset for fixed headers ── */
+  .page { padding-top: 70px; min-height: 100vh; background-color: #ffffff38; }
+
+  /* ── Main layout ── */
+  .main { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 36px; padding: 36px 28px 48px; max-width: 1040px; margin: 0 auto; }
+  @media (max-width: 1024px) { .main { grid-template-columns: 1fr; padding: 20px 16px; } }
+
+  /* ── Certificate image ── */
+  .cert-img-wrap { border-radius: 14px; overflow: hidden; border: 1px solid #E5E7EB; box-shadow: 0 2px 12px rgba(0,0,0,0.08); background: #fff; }
+  .cert-img-wrap img { width: 100%; display: block; height: auto; }
+
+  /* ── Action buttons ── */
+  .action-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .action-btn { padding: 14px 12px; border-radius: 8px; border: 1px solid #D1D5DB; background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; color: #111; display: flex; align-items: center; justify-content: center; gap: 7px; transition: background 0.15s; }
+  .action-btn:hover { background: #F3F4F6; }
+  .action-btn.primary { background: #1E40AF; color: #fff; border-color: #1B3A7A; }
+  .action-btn.primary:hover { background: #163166; }
+
+  .social-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .social-btn { padding: 15px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; transition: opacity 0.15s; }
+  .btn-li { background: #0A66C2; }
+  .btn-fb { background: #1877F2; }
+  .btn-tw { background: #1DA1F2; }
+  .social-btn:hover { opacity: 0.85; }
+
+  /* ----------modified */
+.social-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+
+  transition: all 0.2s ease;
+}
+
+.social-btn svg {
+  flex-shrink: 0;
+}
+
+.btn-li { background: #0A66C2; }
+.btn-fb { background: #1877F2; }
+.btn-tw { background: #1DA1F2; }
+
+.social-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+  /* ----------modified */
+
+  /* ── QR row ── */
+  .qr-row { display: flex; align-items: center; gap: 14px; margin-top: 25px; padding: 20px; background: #ffffff38; border-radius: 10px;  }
+  .qr-box { width: 67px; height: 67px; background: #fff; border-radius: 10px; display: grid; grid-template-columns: repeat(5,1fr); gap: 2px; padding: 10px; flex-shrink: 0; border: 1px solid rgb(220, 220, 220);}
+  .qr-cell { background: #1B3A7A; border-radius: 1px; }
+  .qr-cell.w { background: #fff; }
+  .qr-label { font-size: 13px; font-weight: 600; color: #111; }
+  .qr-sub { font-size: 12px; color: #9CA3AF; margin-top: 3px; }
+
+  /* ── Right info panel ── */
+  .info-section { padding-top: 4px; }
+  .cert-main-title { font-size: 36px; font-weight: 700; color: #111; line-height: 1.25; margin-bottom: 8px; }
+  .issuer-line { font-size: 14px; color: #6B7280; margin-bottom: 24px; border-bottom: 1px solid rgb(210, 205, 205); padding-bottom: 20px; }
+  .issuer-line a { color: #1E40AF; font-weight: 600; text-decoration: none; }
+  .section-label { font-size: 14px; font-weight: 700; color: #191e27; text-transform: uppercase; margin-bottom: 12px; }
+  /* .check-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; font-size: 14px; color: #111; line-height: 1.55; }
+  .check-icon { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #2563EB; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .check-icon::after { content: ''; display: block; width: 5px; height: 3px; border-left: 1.5px solid #2563EB; border-bottom: 1.5px solid #2563EB; transform: rotate(-45deg) translate(1px,-1px); } */
+
+  /* -----------modified */
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 11px;
+  font-size: 14px;
+  color: #111;
+  opacity: 0.8;
+  line-height: 1.55;
+}
+
+.check-svg-bg {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.1); /* light blue background */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: background 0.2s ease;
+}
+
+.check-svg-bg:hover {
+  background: rgba(37, 99, 235, 0.2); /* hover effect */
+}
+
+.check-svg-bg svg {
+  display: block;
+}
+  /* -----------modified */
+  .skills-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 20px; }
+  .skill-tag { padding: 8px 14px; border-radius: 10px; border: 1px solid #86b3f7; font-size: 12px; color: #1E40AF; background: #f3f4f7; font-weight: 500; }
+  .divider { border: none; border-top: 1px solid #E5E7EB; margin: 18px 0; }
+
+
+
+  .verify-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.534);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.verify-modal.active {
+  display: flex;
+}
+
+.verify-box {
+  background: #fff;
+  width: 440px;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.verify-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 18px;
+  color: #1E40AF;
+  margin-bottom: 10px;
+}
+
+.close-btn {
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.verify-item {
+  font-size: 14px;
+  padding: 6px 0;
+  color: #374151;
+}
+
+.verify-success {
+  margin-top: 15px;
+  font-weight: 700;
+  color: #16A34A;
+}
+
+.verify-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  padding: 6px 0;
+  color: #374151;
+}
+
+.verify-item svg {
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+  <!-- ── Fixed Topbar ── -->
+  <div class="topbar">
+    <!--
+      TO CUSTOMISE: Replace the src below with your EduSkills logo URL.
+      e.g. src="https://your-cdn.com/eduskills-logo.png"
+    -->
+    <img
+      class="topbar-logo"
+      src="https://certificate.eduskillsfoundation.org/assets/LOGO_EduSkills-CpxuAtBs.png"
+      alt="EduSkills logo"
+    />
+    <!-- <div class="logo-sub">Nation Building Through Skills</div> -->
+  </div>
+
+  <!-- ── Fixed Badge Header ── -->
+  <div class="badge-header">
+    <div class="badge-header-left">
+      <div class="avatar">
+        <!-- <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="9" r="4.5" fill="#9CA3AF"/>
+          <path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#9CA3AF" stroke-width="1.5" fill="none"/>
+        </svg> -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user text-gray-500" aria-hidden="true" opacity="0.6">
+  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+  <circle cx="12" cy="7" r="4"></circle>
+</svg>
+      </div>
+      <div>
+        <div class="issued-to">This badge was issued to <a href="#">Kundrapu Sagar</a></div>
+        <div class="issued-date">Date issued: March 18, 2026</div>
+      </div>
+    </div>
+    <button class="verify-btn">
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="6" stroke="white" stroke-width="1.5"/>
+        <path d="M4.5 7l1.8 1.8 3-3.6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Verify
+    </button>
+  </div>
+
+  <!-- ── Scrollable page body ── -->
+  <div class="page">
+    <div class="main">
+
+      <!-- ── Left column ── -->
+      <div>
+        <!--
+          TO CUSTOMISE: Replace the src below with your certificate image URL.
+          e.g. src="https://your-cdn.com/certificate.png"
+        -->
+        <div class="cert-img-wrap">
+          <img
+            src="https://sipcstore.s3.amazonaws.com/uploads/8e22ff7e-afba-4257-8e9b-0e303a4f8b03.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAR7VYFVUSLTJTPJIC%2F20260420%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20260420T083233Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=134ff707755cbc3edefbed6c823f25ce291115cb337c6f935456ad85bb593b25"
+            alt="DevOps & Cloud Automation Certificate"
+          />
+        </div>
+
+        <div class="action-btns">
+          <button class="action-btn primary" id="btn-download">
+            <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
+              <path d="M6.5 1v8M3 6l3.5 3.5L10 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M1 11h11" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Download
+          </button>
+          <button class="action-btn" id="btn-copy">
+            <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
+              <rect x="2" y="4" width="7" height="7" rx="1.5" stroke="#6B7280" stroke-width="1.2"/>
+              <path d="M4 4V3a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-1" stroke="#6B7280" stroke-width="1.2"/>
+            </svg>
+            Copy Link
+          </button>
+        </div>
+
+        <!-- <div class="social-btns">
+          <button class="social-btn btn-li">
+          
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-linkedin" aria-hidden="true">
+  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+  <rect width="4" height="12" x="2" y="9"></rect>
+  <circle cx="4" cy="4" r="2"></circle>
+</svg>
+            LinkedIn
+          </button>
+          <button class="social-btn btn-fb">
+            
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-facebook" aria-hidden="true">
+  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+</svg>
+            Facebook
+          </button>
+          <button class="social-btn btn-tw">
+            
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-twitter" aria-hidden="true">
+  <path d="M22 4.01c-.8.36-1.66.6-2.56.7a4.48 4.48 0 0 0 1.96-2.48 9.05 9.05 0 0 1-2.85 1.1A4.52 4.52 0 0 0 11 7.03c0 .35.04.7.11 1.03A12.83 12.83 0 0 1 3 3.16a4.52 4.52 0 0 0 1.4 6.03 4.48 4.48 0 0 1-2.05-.56v.06a4.52 4.52 0 0 0 3.63 4.43c-.39.1-.8.15-1.22.15-.3 0-.59-.03-.87-.08a4.52 4.52 0 0 0 4.22 3.14A9.06 9.06 0 0 1 2 18.58a12.8 12.8 0 0 0 6.92 2.03c8.3 0 12.84-6.88 12.84-12.84 0-.2 0-.4-.02-.6A9.18 9.18 0 0 0 22 4.01z"></path>
+</svg>
+            Twitter
+          </button>
+        </div> -->
+
+        <div class="social-btns">
+
+  <a href="https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=DevOps%20%26%20Cloud%20Automation%20Virtual%20Internship&organizationName=EduSkills&issueYear=2026&issueMonth=3&certUrl=https%3A%2F%2Fcertificate.eduskillsfoundation.org%2Fverify%2F4421971997bd41fc4d62%2F4421971997bd41fc4d62&certId=4421971997bd41fc4d62" class="social-btn btn-li" target="_blank">
+    <!-- LinkedIn SVG -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+      <rect width="4" height="12" x="2" y="9"></rect>
+      <circle cx="4" cy="4" r="2"></circle>
+    </svg>
+    LinkedIn
+  </a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fcertificate.eduskillsfoundation.org%2Fverify%2F4421971997bd41fc4d62%2F4421971997bd41fc4d62" class="social-btn btn-fb" target="_blank">
+    <!-- Facebook SVG -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+    </svg>
+    Facebook
+  </a>
+
+  <a href="https://twitter.com/intent/tweet?text=I%20earned%3A%20DevOps%20%26%20Cloud%20Automation%20Virtual%20Internship&url=https%3A%2F%2Fcertificate.eduskillsfoundation.org%2Fverify%2F4421971997bd41fc4d62%2F4421971997bd41fc4d62" class="social-btn btn-tw" target="_blank">
+    <!-- Twitter SVG -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 4.01c-.8.36-1.66.6-2.56.7a4.48 4.48 0 0 0 1.96-2.48 9.05 9.05 0 0 1-2.85 1.1A4.52 4.52 0 0 0 11 7.03c0 .35.04.7.11 1.03A12.83 12.83 0 0 1 3 3.16a4.52 4.52 0 0 0 1.4 6.03 4.48 4.48 0 0 1-2.05-.56v.06a4.52 4.52 0 0 0 3.63 4.43c-.39.1-.8.15-1.22.15-.3 0-.59-.03-.87-.08a4.52 4.52 0 0 0 4.22 3.14A9.06 9.06 0 0 1 2 18.58a12.8 12.8 0 0 0 6.92 2.03c8.3 0 12.84-6.88 12.84-12.84 0-.2 0-.4-.02-.6A9.18 9.18 0 0 0 22 4.01z"></path>
+    </svg>
+    Twitter
+  </a>
+
+</div>
+
+        <div class="qr-row">
+          <div class="qr-box">
+            <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell w"></div><div class="qr-cell"></div>
+            <div class="qr-cell"></div><div class="qr-cell w"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell w"></div>
+            <div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell w"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+            <div class="qr-cell w"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell w"></div><div class="qr-cell"></div>
+            <div class="qr-cell"></div><div class="qr-cell w"></div><div class="qr-cell"></div><div class="qr-cell"></div><div class="qr-cell"></div>
+          </div>
+          <div>
+            <div class="qr-label">Scan to verify</div>
+            <div class="qr-sub">Quick verification using QR code</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Right column ── -->
+      <div class="info-section">
+        <div class="cert-main-title">DevOps &amp; Cloud Automation<br>Virtual Internship</div>
+        <div class="issuer-line">Issued by <a href="#">EduSkills 
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" aria-hidden="true" color="#1E40AF">
+  <path d="M15 3h6v6"></path>
+  <path d="M10 14 21 3"></path>
+  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+</svg>
+        </a></div>
+
+        <div class="section-label">Description</div>
+
+        <!-- <div class="check-item"><div class="check-icon"></div><div>DevOps Foundations &amp; Culture Immersion &amp; Git Advanced Workflows &amp; Version Control Mastery</div></div> -->
+         <div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>DevOps Foundations &amp; Culture Immersion &amp; Git Advanced Workflows &amp; Version Control Mastery</div>
+</div>
+        <!-- <div class="check-item"><div class="check-icon"></div><div>Linux Essentials &amp; Shell Scripting for DevOps &amp; Docker Fundamentals: Containerization Essentials</div></div>
+        <div class="check-item"><div class="check-icon"></div><div>Docker Compose for Multi-Container Applications &amp; CI/CD Fundamentals &amp; GitHub Actions Introduction</div></div>
+        <div class="check-item"><div class="check-icon"></div><div>Container Security &amp; Image Scanning &amp; Infrastructure as Code with Terraform – Core Concepts</div></div>
+        <div class="check-item"><div class="check-icon"></div><div>Terraform Advanced Features &amp; Introduction to Ansible for Configuration Management</div></div>
+        <div class="check-item"><div class="check-icon"></div><div>Kubernetes Fundamentals: Orchestration Basics &amp; Kubernetes Advanced: Ingress, Helm &amp; Kustomize</div></div>
+        <div class="check-item"><div class="check-icon"></div><div>Monitoring, Logging &amp; Observability in DevOps &amp; Scalability Patterns &amp; Auto-Scaling &amp; Troubleshooting &amp; Debugging Distributed Systems &amp; Site Reliability Engineering (SRE) Principles</div></div>
+        <div class="check-item"><div class="check-icon"></div><div>CI/CD Pipeline Integration &amp; Automation &amp; Best Practices &amp; Future Trends in DevOps &amp; Capstone Project: Building a Scalable Microservice with CI/CD and IaC</div></div> -->
+
+        <div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Linux Essentials &amp; Shell Scripting for DevOps &amp; Docker Fundamentals: Containerization Essentials</div>
+</div>
+
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Docker Compose for Multi-Container Applications &amp; CI/CD Fundamentals &amp; GitHub Actions Introduction</div>
+</div>
+
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Container Security &amp; Image Scanning &amp; Infrastructure as Code with Terraform – Core Concepts</div>
+</div>
+
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Terraform Advanced Features &amp; Introduction to Ansible for Configuration Management</div>
+</div>
+
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Kubernetes Fundamentals: Orchestration Basics &amp; Kubernetes Advanced: Ingress, Helm &amp; Kustomize</div>
+</div>
+
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Monitoring, Logging &amp; Observability in DevOps &amp; Scalability Patterns &amp; Auto-Scaling &amp; Troubleshooting &amp; Debugging Distributed Systems &amp; Site Reliability Engineering (SRE) Principles</div>
+</div>
+
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>CI/CD Pipeline Integration &amp; Automation &amp; Best Practices &amp; Future Trends in DevOps &amp; Capstone Project: Building a Scalable Microservice with CI/CD and IaC</div>
+</div>
+
+        <!-- <hr class="divider"> -->
+        <div class="section-label" style="margin-top: 30px;">Skills</div>
+        <div class="skills-row">
+          <span class="skill-tag">Devops</span>
+          <span class="skill-tag">cicd</span>
+          <span class="skill-tag">automation</span>
+        </div>
+
+        <!-- <hr class="divider"> -->
+        <div class="section-label" style="margin-top: 30px;">Earning Criteria</div>
+        <!-- <div class="check-item"><div class="check-icon"></div><div>DevOps Engineer</div></div> -->
+         <div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>DevOps Engineer</div>
+</div>
+        <!-- <div class="check-item"><div class="check-icon"></div><div>Cloud &amp; DevOps Associate</div></div> -->
+        <!-- <div class="check-item"><div class="check-icon"></div><div>CI/CD Engineer</div></div> -->
+         <div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>Cloud &amp; DevOps Associate</div>
+</div>
+<div class="check-item">
+  <div class="check-svg-bg">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9 12l2 2 4-4"></path>
+    </svg>
+  </div>
+  <div>CI/CD Engineer</div>
+</div>
+      </div>
+
+    </div>
+  </div>
+
+
+<div class="verify-modal" id="verifyModal">
+  <div class="verify-box">
+    <div class="verify-header">
+      <span>Verification</span>
+      <button class="close-btn" id="closeModal">&times;</button>
+    </div>
+
+    <div class="verify-content">
+  <div class="verify-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    Issued on March 18, 2026
+  </div>
+
+  <div class="verify-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    Issued by EduSkills
+  </div>
+
+  <div class="verify-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    Issued using EduSkills
+  </div>
+
+  <div class="verify-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    Issued to Kundrapu Sagar
+  </div>
+
+  <div class="verify-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    Accepted on March 18, 2026
+  </div>
+
+  <div class="verify-item">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="m9 12 2 2 4-4"></path>
+    </svg>
+    Last Updated March 18, 2026
+  </div>
+</div>
+
+    <div class="verify-success">✔ VERIFIED RESULT</div>
+  </div>
+</div>
+
+<!-- <script>
+  document.querySelector('.verify-btn').addEventListener('click', function () {
+    alert('Certificate verified successfully!');
+  });
+
+  document.getElementById('btn-download').addEventListener('click', function () {
+    alert('Download started!');
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function () {
+    const btn = this;
+    navigator.clipboard && navigator.clipboard.writeText(window.location.href).then(() => {
+      const orig = btn.innerHTML;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    });
+  });
+</script> -->
+
+<script>
+  // Verify button
+  // document.querySelector('.verify-btn')?.addEventListener('click', () => {
+  //   alert('Certificate verified successfully!');
+  // });
+
+   const modal = document.getElementById('verifyModal');
+
+  document.querySelector('.verify-btn')?.addEventListener('click', () => {
+    modal.classList.add('active');
+  });
+
+  document.getElementById('closeModal')?.addEventListener('click', () => {
+    modal.classList.remove('active');
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.remove('active');
+    }
+  });
+
+  // Download button (real download instead of alert)
+  document.getElementById('btn-download')?.addEventListener('click', async () => {
+  const imgSrc = document.querySelector('.cert-img-wrap img').src;
+
+  try {
+    const response = await fetch(imgSrc);
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.download = 'certificate.png';
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Download failed');
+  }
+});
+
+  // Copy link button (simplified)
+  document.getElementById('btn-copy')?.addEventListener('click', async function () {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      this.textContent = 'Copied!';
+      setTimeout(() => (this.textContent = 'Copy Link'), 2000);
+    } catch (e) {
+      alert('Copy failed');
+    }
+  });
+</script>
+</body>
+</html>
